@@ -2,12 +2,19 @@ package cz.educanet.minesweeper.logic;
 
 public class Minesweeper {
 
+    private Field playground;
     private int rowsCount;
     private int columnsCount;
+    
+    private boolean bombClicked; 
+    private int clearCells; 
 
     public Minesweeper(int rows, int columns) {
         this.rowsCount = rows;
         this.columnsCount = columns;
+
+        this.playground = Field.generetField(rows, columns);
+        clearCells = (rows * columns) - playground.getBombCount();
     }
 
     /**
@@ -15,93 +22,101 @@ public class Minesweeper {
      * 1 - Visible
      * 2 - Flag
      * 3 - Question mark
-     *
-     * @param x X
-     * @param y Y
-     * @return field type
      */
     public int getField(int x, int y) {
-        return 0;
+        return playground.getCellType(x, y);
     }
 
-    /**
-     * Toggles the field state, ie.
-     * 0 -> 1,
-     * 1 -> 2,
-     * 2 -> 3 and
-     * 3 -> 0
-     *
-     * @param x X
-     * @param y Y
-     */
-    public void toggleFieldState(int x, int y) {
+    public void toggleFieldState(int x, int y) { 
+        if (getField(x, y) == 0) { 
+            playground.setCellType(x, y, 2);
+        } 
+        else if (getField(x, y) == 2) { 
+            playground.setCellType(x, y, 3);
+        } 
+        else if (getField(x, y) == 3) { 
+            playground.setCellType(x, y, 0);
+        }
     }
 
-    /**
-     * Reveals the field and all fields adjacent (with 0 adjacent bombs) and all fields adjacent to the adjacent fields... ect.
-     *
-     * @param x X
-     * @param y Y
-     */
+    public Field secondReveal(int x, int y, Field input) {
+        Field playground = input;
+        playground.getCellPosition(x, y).setType(1);
+
+        if (getAdjacentBombCount(x, y) == 0) {
+            boolean topRight = (x != columnsCount - 1) && (y != 0);
+            boolean topLeft = (x != 0) && (y != 0);
+            boolean bottomRight = (x != columnsCount - 1) && (y != rowsCount - 1);
+            boolean bottomLeft = (x != 0) && (y != rowsCount - 1);
+
+            if (topRight && !isBombOnPosition(x + 1, y - 1) && getField(x + 1, y - 1) == 0) { // Nahore Vpravo
+                playground.getCellPosition(x + 1, y - 1).setType(1);
+                secondReveal(x + 1, y - 1, input);
+                clearCells--;
+            }
+            if (topLeft && !isBombOnPosition(x - 1, y - 1) && getField(x - 1, y - 1) == 0) { // Nahore vlevo
+                playground.getCellPosition(x - 1, y - 1).setType(1);
+                secondReveal(x - 1, y - 1, input);
+                clearCells--;
+            }
+            if (bottomRight && !isBombOnPosition(x + 1, y + 1) && getField(x + 1, y + 1) == 0) { //Dole Vpravo
+                playground.getCellPosition(x + 1, y + 1).setType(1);
+                secondReveal(x + 1, y + 1, input);
+                clearCells--;
+            }
+            if (bottomLeft && !isBombOnPosition(x - 1, y + 1) && getField(x - 1, y + 1) == 0) { // Dole Vlevo
+                playground.getCellPosition(x - 1, y + 1).setType(1);
+                secondReveal(x - 1, y + 1, input);
+                clearCells--;
+            }
+
+        }
+        return playground;
+    }
+
     public void reveal(int x, int y) {
+        if (playground.isClicked(x, y)) {
+            bombClicked = true;
+        } else {
+            playground = secondReveal(x, y, playground);
+            clearCells--;
+        }
     }
 
-    /**
-     * Returns the amount of adjacent bombs
-     *
-     * @param x X
-     * @param y Y
-     * @return number of adjacent bombs
-     */
     public int getAdjacentBombCount(int x, int y) {
-        return 0;
+        int bombs = 0;
+
+        boolean topRight = (x != columnsCount - 1) && (y != 0);
+        boolean topLeft = (x != 0) && (y != 0);
+        boolean bottomRight = (x != columnsCount - 1) && (y != rowsCount - 1);
+        boolean bottomLeft = (x != 0) && (y != rowsCount - 1);
+
+        if (topRight && isBombOnPosition(x + 1, y - 1)) { // Nahore Vpravo
+            bombs++;
+        }
+        if (topLeft && isBombOnPosition(x - 1, y - 1)) { // Nahore vlevo
+            bombs++;
+        }
+        if (bottomRight && isBombOnPosition(x + 1, y + 1)) { //Dole Vpravo
+            bombs++;
+        }
+        if (bottomLeft && isBombOnPosition(x - 1, y + 1)) { // Dole Vlevo
+            bombs++;
+        }
+        return bombs;
     }
 
-    /**
-     * Checks if there is a bomb on the current position
-     *
-     * @param x X
-     * @param y Y
-     * @return true if bomb on position
-     */
+
     public boolean isBombOnPosition(int x, int y) {
-        return false;
+        return playground.getCellPosition(x, y).isBomb();
     }
 
-    /**
-     * Returns the amount of bombs on the field
-     *
-     * @return bomb count
-     */
-    public int getBombCount() {
-        return 0;
-    }
-
-    /**
-     * total bombs - number of flags
-     *
-     * @return remaining bomb count
-     */
-    public int getRemainingBombCount() {
-        return 0;
-    }
-
-    /**
-     * returns true if every flag is on a bomb, else false
-     *
-     * @return if player won
-     */
     public boolean didWin() {
-        return false;
+        return clearCells == 0;
     }
 
-    /**
-     * returns true if player revealed a bomb, else false
-     *
-     * @return if player lost
-     */
     public boolean didLoose() {
-        return false;
+        return bombClicked;
     }
 
     public int getRows() {
