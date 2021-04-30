@@ -39,8 +39,8 @@ public class Minesweeper {
         }
     }
 
-    public Field secondReveal(int x, int y, Field input) {
-        Field playground = input;
+    public Field secondReveal(int x, int y, Field superMuzesFungovat) {
+        playground = superMuzesFungovat;
         playground.getCellPosition(x, y).setType(1);
 
         if (getAdjacentBombCount(x, y) == 0) {
@@ -49,24 +49,34 @@ public class Minesweeper {
             boolean bottomRight = (x != columnsCount - 1) && (y != rowsCount - 1);
             boolean bottomLeft = (x != 0) && (y != rowsCount - 1);
 
+            if ((topRight || topLeft) && !isBombOnPosition(x, y - 1) && getField(x, y - 1) == 0) { // Nahore
+                playground.getCellPosition(x, y - 1).setType(1);
+                secondReveal(x, y - 1, superMuzesFungovat);
+                clearCells--;
+            }
             if (topRight && !isBombOnPosition(x + 1, y - 1) && getField(x + 1, y - 1) == 0) { // Nahore Vpravo
                 playground.getCellPosition(x + 1, y - 1).setType(1);
-                secondReveal(x + 1, y - 1, input);
+                secondReveal(x + 1, y - 1, superMuzesFungovat);
                 clearCells--;
             }
             if (topLeft && !isBombOnPosition(x - 1, y - 1) && getField(x - 1, y - 1) == 0) { // Nahore vlevo
                 playground.getCellPosition(x - 1, y - 1).setType(1);
-                secondReveal(x - 1, y - 1, input);
+                secondReveal(x - 1, y - 1, superMuzesFungovat);
+                clearCells--;
+            }
+            if ((bottomRight || bottomLeft) && !isBombOnPosition(x, y + 1) && getField(x, y + 1) == 0) { // Dole
+                playground.getCellPosition(x, y + 1).setType(1);
+                secondReveal(x, y + 1, superMuzesFungovat);
                 clearCells--;
             }
             if (bottomRight && !isBombOnPosition(x + 1, y + 1) && getField(x + 1, y + 1) == 0) { //Dole Vpravo
                 playground.getCellPosition(x + 1, y + 1).setType(1);
-                secondReveal(x + 1, y + 1, input);
+                secondReveal(x + 1, y + 1, superMuzesFungovat);
                 clearCells--;
             }
             if (bottomLeft && !isBombOnPosition(x - 1, y + 1) && getField(x - 1, y + 1) == 0) { // Dole Vlevo
                 playground.getCellPosition(x - 1, y + 1).setType(1);
-                secondReveal(x - 1, y + 1, input);
+                secondReveal(x - 1, y + 1, superMuzesFungovat);
                 clearCells--;
             }
 
@@ -91,17 +101,45 @@ public class Minesweeper {
         boolean bottomRight = (x != columnsCount - 1) && (y != rowsCount - 1);
         boolean bottomLeft = (x != 0) && (y != rowsCount - 1);
 
-        if (topRight && isBombOnPosition(x + 1, y - 1)) { // Nahore Vpravo
+        try {if ((topRight || topLeft) && isBombOnPosition(x, y - 1)) { // Uprostred nahore
             bombs++;
+        }}catch (Exception e){
+            System.out.println("UN error");
         }
-        if (topLeft && isBombOnPosition(x - 1, y - 1)) { // Nahore vlevo
+        try {if ((topRight || bottomRight) && isBombOnPosition(x + 1, y)) { // Uprostred Vpravo
             bombs++;
+        }}catch (Exception e) {
+            System.out.println("UVP error");
         }
-        if (bottomRight && isBombOnPosition(x + 1, y + 1)) { //Dole Vpravo
+        try {if ((bottomRight || bottomLeft) && isBombOnPosition(x, y + 1)) { // Uprostred Dole
             bombs++;
+        }}catch (Exception e) {
+            System.out.println("UD error");
         }
-        if (bottomLeft && isBombOnPosition(x - 1, y + 1)) { // Dole Vlevo
+        try {if ((bottomLeft || topLeft) && isBombOnPosition(x - 1, y)) { // Uprostred vlevo
             bombs++;
+        }}catch (Exception e){
+            System.out.println("UVL error");
+        }
+        try {if (topRight && isBombOnPosition(x + 1, y - 1)) { // Nahore Vpravo
+            bombs++;
+        }}catch (Exception e){
+            System.out.println("NVP error");
+        }
+        try {if (topLeft && isBombOnPosition(x - 1, y - 1)) { // Nahore vlevo
+            bombs++;
+        }}catch (Exception e) {
+            System.out.println("NVL error");
+        }
+        try {if (bottomRight && isBombOnPosition(x + 1, y + 1)) { //Dole Vpravo
+            bombs++;
+        }}catch (Exception e){
+            System.out.println("DVP error");
+        }
+        try {if (bottomLeft && isBombOnPosition(x - 1, y + 1)) { // Dole Vlevo
+            bombs++;
+        }}catch (Exception e){
+            System.out.println("DVL error");
         }
         return bombs;
     }
